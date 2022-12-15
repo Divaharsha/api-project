@@ -86,6 +86,16 @@ class ApiController extends Controller
           ], 200);
         }
 
+
+        // Check if a user with the given email address exists in the database
+            $userExists = DB::table('students')->where('mobile', $request->input('mobile'))->exists();
+            if ($userExists) {
+                return response()->json([
+                   "success" => false ,
+                    'message' => 'Mobile Number Already exists'
+                ], 400);
+            }
+
             $student = new Student;
             $student->name = $request->name;
             $student->email = $request->email;
