@@ -29,3 +29,9 @@ Route::post('login',[AuthController::class, "login"]);
 Route::get("productlist", [ProductController::class, "product"]);
 Route::get("products/{id}", [ProductController::class, "getproduct"]);
 
+//aad to cart
+Route::post("addtocart", [ProductController::class, "cart"]);
+
+//order
+Route::post("order", [ProductController::class, "order"]);
+

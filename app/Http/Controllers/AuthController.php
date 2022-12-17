@@ -7,8 +7,7 @@ use App\Models\Student;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
-    {
+    public function login(Request $request){
         $mobile = $request->input('mobile');
         $password = $request->input('password');
 
