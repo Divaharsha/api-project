@@ -28,10 +28,15 @@ Route::post('login',[AuthController::class, "login"]);
 //productlist
 Route::get("productlist", [ProductController::class, "product"]);
 Route::get("products/{id}", [ProductController::class, "getproduct"]);
+Route::get("recentproducts", [ProductController::class, "recentproducts"]);
+
 
 //aad to cart
 Route::post("addtocart", [ProductController::class, "cart"]);
 
 //order
 Route::post("order", [ProductController::class, "order"]);
+
+//checkout
+Route::post("checkout", [ProductController::class, "checkout"]);
 

@@ -49,6 +49,37 @@ class ProductController extends Controller
         ],404);
         } 
     }
+
+    public function recentproducts(){
+            $products = Product::orderBy('id', 'desc')
+            ->join('categories', 'products.category_id', '=','categories.id')
+            ->select('categories.name AS category_name','products.image AS image','products.id AS id','products.*')
+            ->take(5)->get();
+            if(count($products) >=1){
+                foreach ($products as  $item):
+                    $temp['id'] = $item->id;
+                    $temp['category_name'] = $item->category_name;
+                    $temp['product_name']= $item->product_name;
+                    $temp['brand'] = $item->brand;
+                    $temp['price'] = $item->price;
+                    $temp['image'] = $item->image;
+                    $temp['description'] = $item->description;
+                    $rows[] = $temp;
+                endforeach;
+                return response()->json([
+                        'success' =>true,
+                        'message' => 'Product Listed successfully',
+                        'data' => $rows,
+                ],200);
+            }
+        
+            else{
+                return response()->json([
+                    'success' =>false,
+                    'message' => 'Product Not Found',
+            ],404);
+           }
+    } 
     
     public function cart(Request $request) {
      
@@ -202,5 +233,59 @@ class ProductController extends Controller
                 ], 400);
             }
         
+    }
+
+    //checkout
+    public function checkout(Request $request) {
+     
+        $user_id = $request->input('user_id');
+
+        if(empty($user_id)){
+            return response()->json([
+                'success'=>false,
+                'message' => 'User Id is Empty',
+            ], 200);
+        }
+       
+            $student = DB::table('students')
+            ->where('id', $request->input('user_id'))
+             ->get();
+            if (count($student) == 1) {
+                return response()->json([
+                   "success" => true ,
+                    'message' => 'Checkout Retrieved Successfully',
+                    'data' => $student,
+                    // 'mobile' =>$student->mobile,
+                    // 'address' =>$student->address.','.$student->village.','.$student->district,'-'.$student->pincode,
+                ], 400);
+                $cart = DB::table('cart')
+                ->join('products', 'cart.product_id', '=','products.id')
+                ->select('cart.id AS id','products.price * cart.quality AS price','products.price')
+                ->where('cart.user_id','=', $user_id)
+                 ->get();
+                 if (count($cart) >= 1) {
+                    $sum=0;
+                    foreach ($cart as  $item):
+                        $sum += $item->price;
+                        $temp['id'] = $item->id;
+                        $temp['price'] = $item->price;
+                        $temp['quantity'] = $item->quantity;
+                        $temp['product_name'] = $item->product_name;
+                        $temp['brand'] = $item->brand;
+                        $temp['description'] = $item->description;
+                        $temp['image'] = $item->image;
+                        $rows[] = $temp;
+                    endforeach;
+                    $delivery= DB::table('delivery_charges')->get();
+                    $delivery_charges= $delivery->delivery_charge
+                 }
+            }
+            else{
+                return response()->json([
+                  "success" => false ,
+                  'message'=> "User Not Found",
+                ], 201);
+
+            }
     }
 }
