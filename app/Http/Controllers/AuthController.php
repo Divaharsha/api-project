@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Student;
 
+use Illuminate\Support\Facades\Hash;
+
+
 class AuthController extends Controller
 {
     public function login(Request $request){
@@ -28,7 +31,7 @@ class AuthController extends Controller
 
         $student = Student::where('mobile', $mobile)->first();
 
-        if ($student && $student->password == $password) {
+        if ($student && Hash::check($request->input('password'), $student->password)) {
             return response()->json([
                 'success'=>true,
                 'message' => 'Logged In successfully',

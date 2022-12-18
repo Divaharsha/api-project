@@ -24,11 +24,13 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::get("list-students", [ApiController::class, "getAllStudents"]);
 Route::post("/signup", [ApiController::class, "createStudent"]);
 Route::post('login',[AuthController::class, "login"]);
+Route::post('updatestudent',[ApiController::class, "updateStudent"]);
 
 //productlist
 Route::get("productlist", [ProductController::class, "product"]);
 Route::get("products/{id}", [ProductController::class, "getproduct"]);
 Route::get("recentproducts", [ProductController::class, "recentproducts"]);
+Route::post("searchproducts", [ProductController::class, "searchproducts"]);
 
 
 //aad to cart
@@ -40,3 +42,7 @@ Route::post("order", [ProductController::class, "order"]);
 //checkout
 Route::post("checkout", [ProductController::class, "checkout"]);
 
+Route::get("notifications", [ProductController::class, "notifications"]);
+
+//wallet Transaction
+Route::post("wallet", [ProductController::class, "wallet"]);

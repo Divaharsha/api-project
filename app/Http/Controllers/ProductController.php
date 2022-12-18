@@ -254,13 +254,13 @@ class ProductController extends Controller
                 return response()->json([
                    "success" => true ,
                     'message' => 'Checkout Retrieved Successfully',
-                    'data' => $student,
-                    // 'mobile' =>$student->mobile,
-                    // 'address' =>$student->address.','.$student->village.','.$student->district,'-'.$student->pincode,
+                    $response['name'] = $student->name,
+                    $response['mobile'] = $student->mobile,
+                    $response['address'] = $student->address.','.$student->village.','.$student->district.'-'.$student->pincode,
                 ], 400);
                 $cart = DB::table('cart')
                 ->join('products', 'cart.product_id', '=','products.id')
-                ->select('cart.id AS id','products.price * cart.quality AS price','products.price')
+                ->select('cart.id AS id','products.*','products.price')
                 ->where('cart.user_id','=', $user_id)
                  ->get();
                  if (count($cart) >= 1) {
@@ -277,7 +277,13 @@ class ProductController extends Controller
                         $rows[] = $temp;
                     endforeach;
                     $delivery= DB::table('delivery_charges')->get();
-                    $delivery_charges= $delivery->delivery_charge
+                    $delivery_charges= $delivery->delivery_charge * count($cart);
+                    $deliver_charges = $res[0]['delivery_charge'] * $num;
+                    $grand_total = $sum + $deliver_charges;
+                    $response['sub_total'] = $sum;
+                    $response['delivery_charges'] = $deliver_charges;
+                    $response['cart_items'] = $rows;
+                    $response['grand_total'] = $grand_total;
                  }
             }
             else{
@@ -288,4 +294,143 @@ class ProductController extends Controller
 
             }
     }
+
+
+    //notifications
+    public function notifications(){
+        $notification = DB::table('notifications')
+        ->orderBy('id', 'desc')
+        ->get();
+        if(count($notification) >=1){
+            foreach ($notification as  $item):
+                $temp['id'] = $item->id;
+                $temp['title'] = $item->title;
+                $temp['description']= $item->description;
+                $rows[] = $temp;
+            endforeach;
+            return response()->json([
+                    'success' =>true,
+                    'message' => 'Notifications Listed successfully',
+                    'data' => $rows,
+            ],200);
+        }
+    
+        else{
+            return response()->json([
+                'success' =>false,
+                'message' => 'Notification Not Found',
+        ],404);
+       }
+    } 
+
+    //searchproducts
+    public function searchproducts(Request $request){
+
+        $search = $request->input('search');
+        if(empty($search)){
+            return response()->json([
+                'success'=>false,
+                'message' => 'Search is Empty',
+            ], 200);
+        }
+
+        $product = Product::where('product_name','like',"%$search%")
+        ->get();
+        if(count($product) >=1){
+            foreach ($product as  $item):
+                $temp['id'] = $item->id;
+                $temp['category_name'] = $item->category_name;
+                $temp['product_name']= $item->product_name;
+                $temp['brand'] = $item->brand;
+                $temp['price'] = $item->price;
+                $temp['image'] = $item->image;
+                $temp['description'] = $item->description;
+                $rows[] = $temp;
+            endforeach;
+            return response()->json([
+                    'success' =>true,
+                    'message' => 'Products Listed successfully',
+                    'data' => $rows,
+            ],200);
+        }
+    
+        else{
+            return response()->json([
+                'success' =>false,
+                'message' => 'Products Not Found',
+        ],404);
+       }
+    } 
+
+
+    //wallet
+    public function wallet(Request $request){
+
+        $user_id = $request->input('user_id');
+        $amount = $request->input('amount');
+        $type = $request->input('type');
+        $date = Carbon::now("Asia/Kolkata")->format('Y-m-d');
+
+            if(empty($user_id)){
+                return response()->json([
+                    'success'=>false,
+                    'message' => 'User Id is Empty',
+                ], 200);
+            }
+            if(empty($amount)){
+                return response()->json([
+                    'success'=>false,
+                    'message' => 'Amount is Empty',
+                ], 200);
+            }
+            if(empty($type)){
+                return response()->json([
+                    'success'=>false,
+                    'message' => 'Type is Empty',
+                ], 200);
+            }
+        
+
+        $user = Student::where('id',$user_id)
+        ->get();
+        if(count($user) >=1){
+             if($type=='credit'){
+                $wallet=new Wallet;
+                $wallet->user_id = $request->user_id;
+                $wallet->date = $date;
+                $wallet->amount = $request->amount;
+                $wallet->type = $type;
+                $wallet->save();
+
+                Student::where('id', $user_id)
+                ->update(['balance' => DB::raw('balance + '.$amount)]);
+             }
+             else{
+                $wallet=new Wallet;
+                $wallet->user_id = $request->user_id;
+                $wallet->date = $date;
+                $wallet->amount = $request->amount;
+                $wallet->type = $type;
+                $wallet->save();
+
+                Student::where('id', $user_id)
+                ->update(['balance' => DB::raw('balance - '.$amount)]);
+
+             }
+             $user = Student::where('id',$user_id)
+             ->get();
+            return response()->json([
+                    'success' =>true,
+                    'message' => 'Wallet Transaction Successfully Completed',
+                    'data' => $user,
+            ],200);
+        }
+    
+        else{
+            return response()->json([
+                'success' =>false,
+                'message' => 'Products Not Found',
+        ],404);
+       }
+    } 
 }
